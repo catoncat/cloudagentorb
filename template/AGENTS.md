@@ -49,7 +49,7 @@ Background（只放完成所需）:
 3. 需要用户原话或最新指令时按第 5 节 bootstrap；有 ticket 就读并认领（`Status: claimed`，填 Owner / Branch）。
 4. 只做需求范围内的事，不顺手扩边界；验证用需求指定命令，加 `<YOUR_VERIFY_COMMANDS>` 中适用者。
 5. push 分支；能开 PR 就只开 **Draft**，开不了（token 权限不足）就报告 compare URL，由编排器落地 PR。
-6. 收尾：`bun scripts/agent-blackboard.ts set status=done branch=<branch> pr=<url>`；若之后可能被唤醒继续，**结束 turn 前**用 `subscribe_github_pr` 订阅自己的 Draft PR。
+6. 收尾（ORB-1 §4.2）：`bun scripts/agent-blackboard.ts set status=done branch=<branch> pr=<url>`；然后**最后扫一次黑板**（`read`，看有没有发给自己的新 directive）——有就执行或明确回执拒绝，没有才结束 turn。若之后可能被唤醒继续，结束 turn 前用 `subscribe_github_pr` 订阅自己的 Draft PR。IDLE 是停靠不是完工：job 只由主会话在 merge 或明确关闭时退休。
 
 协作合同（仓库级标准，不是临时门槛）：不 push `main`、不自标 ready、不自 merge、不关闭未合并 PR、不假设兄弟分支的改动已存在、不改写黑板上他人的 `tasks/<bcId>.json`。
 
@@ -97,7 +97,7 @@ Background（只放完成所需）:
 | 主会话等子代理完工 | 结束 turn，等 Task 完成通知 |
 | 主会话要跟进某个 PR | 先 `subscribe_github_pr` 再结束 turn；PR 活动即唤醒 |
 | 唤醒 IDLE 子代理 | `Task(resume)` 首选；或评论它订阅过的 Draft PR；或用户 follow-up |
-| 给 RUNNING 会话递话 | 没有带外推送；写黑板（`post`），对方在 turn 内自查（`read` / `wait` 只用于短暂协作窗口） |
+| 给 RUNNING 会话递话 | 没有带外推送；写黑板（`post`），对方在 turn 内自查（`read` / `wait` 只用于短暂协作窗口）。这是尽力而为：对方若未回执就 IDLE 了，主会话用 `Task(resume)` 重投该 directive——重投前不算丢 |
 
 不 tight-poll；不用 `subscribe_timer` 当日常唤醒。`subscribe_github_pr` 的投递只发生在订阅方**结束 turn 之后**——先订阅、再让出，是为 hang-listen。
 

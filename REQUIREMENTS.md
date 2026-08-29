@@ -70,6 +70,12 @@ The key words MUST, MUST NOT, SHOULD, and MAY are to be interpreted as described
 - **T2.** Agents MUST judge messages and state by age, not by adjacency. Transcript adjacency is not time adjacency: a wake can arrive minutes or hours after the event, and a resumed conversation may have been idle for a long time. On wake, check timestamps before acting; re-verify facts that age (branch tips, PR state, peer status).
 - **T3.** Latency budgets: shared-store propagation is ~10–30 s; `subscribe_github_pr` delivery MAY lag by minutes (≈10 min observed once, possibly mis-observed — budget for it anyway). A channel that is quiet within its budget is not dead. Before declaring a peer stalled or a channel dead, compare the newest relevant timestamp against these budgets.
 
+### 4.2 End of turn and "done"
+
+- **E1.** Drain before idle: after its last substantive action and before ending its turn, a child MUST make one final blackboard sweep for directives addressed to it since its last read. Anything found is executed, or explicitly declined with a receipt (V2).
+- **E2.** IDLE is parked, not done: ending a turn parks the job in a resumable state (`tasks/<bcId>.json` holds status, branch, PR, remainder). A child judges only "nothing more I can do now"; main alone retires a job (merge or explicit close). An IDLE child is the designed resting state — `Task` resume is the continuation, not a recovery from failure.
+- **E3.** Re-delivery: a bus directive to a RUNNING child is best-effort (T3). If the child goes IDLE without a receipt for it, main re-delivers the directive by `Task` resume. Nothing counts as lost until it has been re-delivered by resume.
+
 ## 5. Collaboration contract
 
 These are standing repository rules, installed once — not per-job gates (see P2).
@@ -114,6 +120,7 @@ The standard deliberately excludes: bus demos as jobs; token spend on how-to-tal
 - *Resume over duplicate (D3)* — a second child for the same job duplicates cost and creates two competing writers for one outcome.
 - *Time by timestamp (T1–T3)* — agents experience time only through their transcripts, where hours compress into adjacent messages; without explicit timestamps and latency budgets, a delayed wake reads as a dead channel and a stale fact reads as current.
 - *Visibility (V1–V3)* — the user cannot see dispatches, children, or delivery from the UI; without links, receipts, and a roster in main's replies, a working fleet is indistinguishable from a stalled one.
+- *End of turn (E1–E3)* — a child closing while a follow-up is in flight is an inherent race on a 10–30 s bus; "only main judges done" would fix it by holding turns open or deadlocking against K2. The drain sweep shrinks the race window, parked-not-done removes the false "broken channel" reading, and resume re-delivery makes the residual race harmless.
 - *Blackboard as infra (§6, I4)* — shared state exists so concurrent jobs do not collide; it earns no jobs of its own.
 
 ## Conformance
@@ -127,6 +134,7 @@ A conversation conforms when all of the following hold:
 5. Its blackboard writes obey the single-writer/flock/append-only discipline (C2).
 6. It judges peers and channels by timestamps against latency budgets, not by transcript adjacency or impatience (T2–T3).
 7. Its user-visible replies carry agent links, receipt lines, and a roster as applicable (V1–V3).
+8. Its children drain the bus before idling, and its main re-delivers unacknowledged directives via resume (E1–E3).
 
 ## History
 
