@@ -100,6 +100,8 @@ Background（只放完成所需）:
 
 不 tight-poll；不用 `subscribe_timer` 当日常唤醒。`subscribe_github_pr` 的投递只发生在订阅方**结束 turn 之后**——先订阅、再让出，是为 hang-listen。
 
+时间纪律（ORB-1 §4.1）：黑板与 bus 的每次写入都带 UTC 时间戳（脚本自动加）；跨代理消息涉及时间时也写明 UTC。判断消息和状态**看年龄，不看相邻**——transcript 里相邻的两条消息，墙钟上可能隔了几分钟到几小时；被唤醒或被 resume 后先看时间戳，再核对会过期的事实（分支 tip、PR 状态、对端状态）。延迟预算：共享盘传播 10–30s；`subscribe_github_pr` 投递可迟数分钟（观察到过 ~10 分钟）。预算内的安静不等于通道死了，别急着判死。
+
 ## 9. 合并与中断
 
 - 合并前：`git fetch origin main`，重读当前决策文档，核对交付与验证结果；CI 绿灯不能替代人审 diff。

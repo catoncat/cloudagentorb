@@ -64,6 +64,12 @@ The key words MUST, MUST NOT, SHOULD, and MAY are to be interpreted as described
 - **K5.** There is no out-of-band push into a RUNNING conversation. Messages for a RUNNING peer are written to the blackboard and read on the peer's own schedule. In-turn `wait`/`read` on the blackboard MAY serve a short co-work window, never everyday waiting.
 - **K6.** A child that expects follow-up work SHOULD subscribe to its own Draft PR before ending its turn.
 
+### 4.1 Time
+
+- **T1.** Every blackboard and bus write carries a UTC timestamp (`scripts/agent-blackboard.ts` adds it). Messages between agents SHOULD state a UTC timestamp when time matters.
+- **T2.** Agents MUST judge messages and state by age, not by adjacency. Transcript adjacency is not time adjacency: a wake can arrive minutes or hours after the event, and a resumed conversation may have been idle for a long time. On wake, check timestamps before acting; re-verify facts that age (branch tips, PR state, peer status).
+- **T3.** Latency budgets: shared-store propagation is ~10–30 s; `subscribe_github_pr` delivery MAY lag by minutes (≈10 min observed once, possibly mis-observed — budget for it anyway). A channel that is quiet within its budget is not dead. Before declaring a peer stalled or a channel dead, compare the newest relevant timestamp against these budgets.
+
 ## 5. Collaboration contract
 
 These are standing repository rules, installed once — not per-job gates (see P2).
@@ -98,6 +104,7 @@ The standard deliberately excludes: bus demos as jobs; token spend on how-to-tal
 - *Raw prompts (P1–P3)* — the child runs the stronger model; pre-solving in the prompt anchors it to the weaker model's plan. Repeating mechanics wastes tokens on how-to-talk, which is a non-goal.
 - *Hang-listen (K1–K3)* — polling burns turns; timers wake on the wrong event. Platform notifications (Task completion, PR subscription) wake exactly when the awaited thing happened.
 - *Resume over duplicate (D3)* — a second child for the same job duplicates cost and creates two competing writers for one outcome.
+- *Time by timestamp (T1–T3)* — agents experience time only through their transcripts, where hours compress into adjacent messages; without explicit timestamps and latency budgets, a delayed wake reads as a dead channel and a stale fact reads as current.
 - *Blackboard as infra (§6, I4)* — shared state exists so concurrent jobs do not collide; it earns no jobs of its own.
 
 ## Conformance
@@ -109,6 +116,7 @@ A conversation conforms when all of the following hold:
 3. It holds no timer subscriptions, and its waits are turn-ending subscriptions or Task notifications (§4).
 4. No job of its has two live children (D3).
 5. Its blackboard writes obey the single-writer/flock/append-only discipline (C2).
+6. It judges peers and channels by timestamps against latency budgets, not by transcript adjacency or impatience (T2–T3).
 
 ## History
 

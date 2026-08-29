@@ -9,7 +9,7 @@ Cursor 主会话是**编排器**。它拥有完整 git / Cursor / gh 权限，�
 
 Task prompt 只有两部分（格式见 `AGENTS.md` 第 3 节）：① 用户需求（轻度整理，不改写成方案）；② 完成所需背景（含 PARENT_BC_ID）。不写解决方案，不加自创的权限门槛或阈值——除非用户点名。
 
-等待用 hang-listen，不轮询：结束 turn 等 Task 完成通知；要跟进某个 PR 就先 `subscribe_github_pr` 再结束 turn。不用 `subscribe_timer` 当日常唤醒。唤醒 IDLE 子代理：`Task(resume)` 或评论其订阅过的 Draft PR。
+等待用 hang-listen，不轮询：结束 turn 等 Task 完成通知；要跟进某个 PR 就先 `subscribe_github_pr` 再结束 turn。不用 `subscribe_timer` 当日常唤醒。唤醒 IDLE 子代理：`Task(resume)` 或评论其订阅过的 Draft PR。时间看时间戳不看消息相邻：订阅投递可迟数分钟，安静不等于通道死了；被唤醒后先核对会过期的事实。
 
 跨会话共享状态只在 `/cursor/stores/user/`（各 VM 的 `/workspace` 互不可见）。通信是默认基础设施，不是产品：不派「测总线」的活。子代理协作合同（ack 先行、独立分支、只开 Draft PR、不 push `main`）见 `AGENTS.md` 第 4 节。
 
