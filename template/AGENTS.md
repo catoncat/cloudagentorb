@@ -27,6 +27,7 @@
 - 最多 `<MAX_PARALLEL_TASKS>` 个并行；同一 wave 避免两个任务改同一文件面（在途子代理的 `cloudAgentBcId` 来自 Task 回执）。
 - review 与 merge 是主会话自己的事：按依赖顺序 merge，把新裁决写进文档。
 - 用户只是讨论时，只对话，不擅自派工。
+- **可见性（ORB-1 §8）**：Cursor UI 没有跨会话视图，主会话的回复就是用户唯一的仪表盘。提到子代理一律给可点击链接 `https://cursor.com/agents/<bcId>`（bcId 来自 Task 回执或 `list-cloud-agents`）；每条用户可见回复末尾带一份简短花名册——每个当前相关 job 一行：链接、状态、一句话任务（只列进行中与刚完成的，不是历史）。
 
 ## 3. Task Prompt（两部分，多了就错）
 
@@ -43,7 +44,7 @@ Background（只放完成所需）:
 
 ## 4. 云端子代理（worker）
 
-1. **先 ack 再干活**：`bun scripts/agent-blackboard.ts register --role worker --goal "<一句话>" --parent <PARENT_BC_ID>`。
+1. **先回执、先 ack，再干活**：收到主会话的任何入站消息（派发、resume、黑板 directive），回复第一行先给一条用户可见回执——自己的 bcId、UTC 时间、一句话复述要做什么；随后注册黑板：`bun scripts/agent-blackboard.ts register --role worker --goal "<一句话>" --parent <PARENT_BC_ID>`。
 2. `git fetch origin main`，从最新 `origin/main` 新建独立分支。
 3. 需要用户原话或最新指令时按第 5 节 bootstrap；有 ticket 就读并认领（`Status: claimed`，填 Owner / Branch）。
 4. 只做需求范围内的事，不顺手扩边界；验证用需求指定命令，加 `<YOUR_VERIFY_COMMANDS>` 中适用者。

@@ -93,7 +93,15 @@ These are standing repository rules, installed once — not per-job gates (see P
 - **I3.** After init, new mains and new children learn the standard entirely from the installed files (`AGENTS.md`, `.cursor/rules/orchestrator.mdc`); no oral tradition, no re-briefing.
 - **I4.** The first real dispatch doubles as the conformance check — ack, context bootstrap, and Draft PR all get exercised. No demo jobs are dispatched to "test the pipes".
 
-## 8. Non-goals
+## 8. Visibility
+
+The Cursor UI shows no cross-conversation state; main's replies are the user's only dashboard, and receipts are the user's only proof of delivery.
+
+- **V1.** When main mentions a child in a user-visible reply, it links the conversation: `https://cursor.com/agents/<bcId>` (the bcId comes from the Task receipt or `list-cloud-agents`).
+- **V2.** On any inbound message from main — dispatch, resume, or blackboard directive — a child's reply begins with one user-visible receipt line: its bcId, a UTC timestamp, and one sentence of what it understood it must do. One line, then work. (The blackboard ack C3 is separate and still required.)
+- **V3.** Main's user-visible replies include a short child roster: one line per currently relevant job — link (V1), status, one-phrase task. Only active and just-finished jobs; not a history.
+
+## 9. Non-goals
 
 The standard deliberately excludes: bus demos as jobs; token spend on how-to-talk; duplicate children for one job; restricting child rights without a user request; multi-model worker fleets; and any communication feature beyond what §4–§6 already provide.
 
@@ -105,6 +113,7 @@ The standard deliberately excludes: bus demos as jobs; token spend on how-to-tal
 - *Hang-listen (K1–K3)* — polling burns turns; timers wake on the wrong event. Platform notifications (Task completion, PR subscription) wake exactly when the awaited thing happened.
 - *Resume over duplicate (D3)* — a second child for the same job duplicates cost and creates two competing writers for one outcome.
 - *Time by timestamp (T1–T3)* — agents experience time only through their transcripts, where hours compress into adjacent messages; without explicit timestamps and latency budgets, a delayed wake reads as a dead channel and a stale fact reads as current.
+- *Visibility (V1–V3)* — the user cannot see dispatches, children, or delivery from the UI; without links, receipts, and a roster in main's replies, a working fleet is indistinguishable from a stalled one.
 - *Blackboard as infra (§6, I4)* — shared state exists so concurrent jobs do not collide; it earns no jobs of its own.
 
 ## Conformance
@@ -117,6 +126,7 @@ A conversation conforms when all of the following hold:
 4. No job of its has two live children (D3).
 5. Its blackboard writes obey the single-writer/flock/append-only discipline (C2).
 6. It judges peers and channels by timestamps against latency budgets, not by transcript adjacency or impatience (T2–T3).
+7. Its user-visible replies carry agent links, receipt lines, and a roster as applicable (V1–V3).
 
 ## History
 
