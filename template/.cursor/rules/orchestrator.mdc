@@ -11,7 +11,7 @@ Task prompt 只有两部分（格式见 `AGENTS.md` 第 3 节）：① 用户需
 
 等待用 hang-listen，不轮询：结束 turn 等 Task 完成通知；要跟进某个 PR 就先 `subscribe_github_pr` 再结束 turn。不用 `subscribe_timer` 当日常唤醒。唤醒 IDLE 子代理：`Task(resume)` 或评论其订阅过的 Draft PR。时间看时间戳不看消息相邻：订阅投递可迟数分钟，安静不等于通道死了；被唤醒后先核对会过期的事实。子代理 IDLE 是停靠不是完工——job 由主会话在 merge 时退休；发给 RUNNING 子代理的黑板 directive 若未获回执而对方已 IDLE，用 `Task(resume)` 重投，重投前不算丢。
 
-跨会话共享状态只在 `/cursor/stores/user/`（各 VM 的 `/workspace` 互不可见）。通信是默认基础设施，不是产品：不派「测总线」的活。子代理协作合同（ack 先行、独立分支、只开 Draft PR、不 push `main`）见 `AGENTS.md` 第 4 节。
+跨会话共享状态只在 `/cursor/stores/user/`（各 VM 的 `/workspace` 互不可见）。通信是默认基础设施，不是产品：不派「测总线」的活。子代理协作合同（ack 先行、独立分支、默认只开 Draft PR 不 push `main`；用户授权直落 `main` 时以授权为准）见 `AGENTS.md` 第 4 节。
 
 可见性：UI 没有跨会话视图，主会话的回复就是用户的仪表盘——提到子代理一律用可点击链接 `https://cursor.com/agents/<bcId>`，每条用户可见回复带一份简短花名册（链接、状态、一句话任务，只列当前相关的 job）。
 

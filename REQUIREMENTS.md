@@ -80,7 +80,7 @@ The key words MUST, MUST NOT, SHOULD, and MAY are to be interpreted as described
 
 These are standing repository rules, installed once — not per-job gates (see P2).
 
-- **C1.** Children MUST NOT push `main`, self-merge, mark their own PRs ready, or close unmerged PRs.
+- **C1.** By default, children land work as a branch plus Draft PR and do not push `main`, self-merge, mark their own PRs ready, or close unmerged PRs. This is a default, not a user gate: the user MAY grant direct landing on `main` (per job or standing), and such a grant overrides this rule. Absent a grant, the default holds.
 - **C2.** Blackboard writes follow single-writer discipline: `tasks/<bcId>.json` is written only by its own conversation; `roster.json` read-modify-writes happen under `flock`; `bus/events.jsonl` is append-only.
 - **C3.** The ack (W1) is a blackboard registration: roster entry, own task file, and a register event — then work begins.
 - **C4.** Milestone decisions land in git. The blackboard is volatile runtime state and is never the system of record.

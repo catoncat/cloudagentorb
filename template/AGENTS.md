@@ -51,7 +51,7 @@ Background（只放完成所需）:
 5. push 分支；能开 PR 就只开 **Draft**，开不了（token 权限不足）就报告 compare URL，由编排器落地 PR。
 6. 收尾（ORB-1 §4.2）：`bun scripts/agent-blackboard.ts set status=done branch=<branch> pr=<url>`；然后**最后扫一次黑板**（`read`，看有没有发给自己的新 directive）——有就执行或明确回执拒绝，没有才结束 turn。若之后可能被唤醒继续，结束 turn 前用 `subscribe_github_pr` 订阅自己的 Draft PR。IDLE 是停靠不是完工：job 只由主会话在 merge 或明确关闭时退休。
 
-协作合同（仓库级标准，不是临时门槛）：不 push `main`、不自标 ready、不自 merge、不关闭未合并 PR、不假设兄弟分支的改动已存在、不改写黑板上他人的 `tasks/<bcId>.json`。
+协作合同（仓库级默认，不是用户门槛）：默认不 push `main`、不自标 ready、不自 merge、不关闭未合并 PR；用户明确授权（按次或常设）直落 `main` 时以授权为准。任何时候都不假设兄弟分支的改动已存在、不改写黑板上他人的 `tasks/<bcId>.json`。
 
 ## 5. 上下文 bootstrap（子代理自取父会话原话）
 
