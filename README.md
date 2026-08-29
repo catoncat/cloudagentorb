@@ -1,6 +1,6 @@
 # Cursor Cloud 编排初始化包
 
-给任意绑定 GitHub 的 Cursor Cloud 项目，一次粘贴装上 **ORB-1 标准**：主会话派发，云端子代理执行；初始化一次粘贴；通信是默认基础设施，不是产品。规范正本见 [`REQUIREMENTS.md`](REQUIREMENTS.md)，与任何具体产品无关。
+给任意绑定 GitHub 的 Cursor Cloud 项目，一次粘贴装上 **ORB-1 标准**：主会话派发，云端子代理执行；初始化一次粘贴；通信是默认基础设施，不是产品。规范正本见 [`REQUIREMENTS.md`](REQUIREMENTS.md)；装好之后人怎么用，见 [`USAGE.md`](USAGE.md)。与任何具体产品无关。
 
 ## 目标（ORB-1 摘要）
 
@@ -65,6 +65,7 @@
 
 ```text
 README.md        # 本文件：ORB-1 目标 + 方案 + 端到端工作流 + 配置去向
+USAGE.md         # 使用手册：装包、开新主会话、日常干活时人该说什么
 REQUIREMENTS.md  # ORB-1 标准（RFC 体，规范正本；目标由用户固定，条文可依 History 演进）
 INIT.md          # setup agent 的执行指令（唯一入口）
 template/        # 会被复制进目标仓库的 6 个文件
