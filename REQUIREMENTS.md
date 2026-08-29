@@ -98,6 +98,9 @@ These are standing repository rules, installed once — not per-job gates (see P
 - **I2.** Init fixes exactly three parameters: the worker model slug, the project verify commands, and the parallel-task cap.
 - **I3.** After init, new mains and new children learn the standard entirely from the installed files (`AGENTS.md`, `.cursor/rules/orchestrator.mdc`); no oral tradition, no re-briefing.
 - **I4.** The first real dispatch doubles as the conformance check — ack, context bootstrap, and Draft PR all get exercised. No demo jobs are dispatched to "test the pipes".
+- **I5.** Init MUST be idempotent. On an already-initialized or partially-initialized repository, init MUST add only the missing capabilities at their canonical paths and MUST NOT overwrite or downgrade an existing, more-evolved file. Init MUST NOT install inert artifacts — `*.orchestration` sidecars or rules nested under a non-root dot-folder are never read by Cursor and do not count as activation.
+- **I6.** The pasted init is a user-authorized **direct** action. Even when the target repository's own always-on rule tells the main conversation not to implement and to dispatch, the setup agent performs this one bootstrap directly and commits it; it MUST NOT dispatch the initialization itself.
+- **I7.** When the project also runs outside Cursor Cloud, ORB-1 activation MUST be scoped to the Cloud environment by a rule that self-gates on a Cloud marker (`CURSOR_AGENT`), so local and other-host runs are unaffected. A Cloud-only project MAY activate unconditionally.
 
 ## 8. Visibility
 
@@ -110,6 +113,14 @@ The Cursor UI shows no cross-conversation state; main's replies are the user's o
 ## 9. Non-goals
 
 The standard deliberately excludes: bus demos as jobs; token spend on how-to-talk; duplicate children for one job; restricting child rights without a user request; multi-model worker fleets; and any communication feature beyond what §4–§6 already provide.
+
+## 10. Environment prerequisites
+
+These are environment-side facts the standard depends on; installed repository files can check them but cannot supply them.
+
+- **EP1.** A working GitHub token is a hard prerequisite. Every delivery step writes GitHub — a child pushes a branch, opens a Draft PR, and wakes via PR comments; main merges. The Cursor Cloud environment MUST provide it (a `gh_token` secret). It is injected into **new** conversations/children, not retroactively into a running one. Absent write access, a child degrades to pushing and reporting a compare URL (W2) and main lands the PR; absent any token, ORB-1 does not function and the setup agent MUST say so rather than silently degrade.
+- **EP2.** The shared store (§6 S1) is the coordination substrate. When it is mounted, children coordinate on the blackboard; when it is absent, coordination degrades to git branches plus PR comments (S4). A missing mount never blocks a job.
+- **EP3.** The worker model slug (D1) MUST be available on the account before dispatch. Init fixes exactly one slug (I2); it is not re-selected per job.
 
 ## Rationale
 
@@ -135,8 +146,10 @@ A conversation conforms when all of the following hold:
 6. It judges peers and channels by timestamps against latency budgets, not by transcript adjacency or impatience (T2–T3).
 7. Its user-visible replies carry agent links, receipt lines, and a roster as applicable (V1–V3).
 8. Its children drain the bus before idling, and its main re-delivers unacknowledged directives via resume (E1–E3).
+9. Its init was idempotent, direct, and correctly scoped, and it verified the environment prerequisites before claiming readiness (I5–I7, §10).
 
 ## History
 
 - 2026-08-29 — v0: user sketch stating the goals (dispatch iron law, thin main, raw prompts, one-paste init, communication as infrastructure, hang-listen, ack first, no duplicate Tasks, no invented gates). Superseded by this document, same goals; original text in Git history.
 - 2026-08-29 — v1: this RFC-style rewrite by the strong-model worker, at the user's request.
+- 2026-08-29 — v2: added the autonomous-init discipline (I5 idempotent init, I6 direct-init authority, I7 Cloud scoping) and §10 environment prerequisites (EP1 GitHub token, EP2 shared store, EP3 worker slug), so that pasting the repo link at a setup agent produces a complete, verified install without back-and-forth.

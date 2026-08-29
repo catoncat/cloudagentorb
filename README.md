@@ -19,8 +19,8 @@
 
 1. git clone --depth 1 https://github.com/catoncat/cloudagentorb /tmp/orch-init
    （若 clone 不可用，改用 raw 地址逐个抓取：https://github.com/catoncat/cloudagentorb 下的 INIT.md 与 template/ 内全部文件。）
-2. 严格按照 /tmp/orch-init/INIT.md 执行：把 template/ 下的文件放进本仓库、填好占位符、自检、提交。
-3. 完成后向我报告：写入了哪些文件、占位符取了什么值、下一步建议。
+2. 严格按照 /tmp/orch-init/INIT.md 自主执行：幂等地补齐激活 template/ 下的能力（只补缺的、不覆盖更完善的、不产惰性副本、只用一个 rule 文件）、判定运行范围（也在别处跑就在 orchestrator 规则里加 CURSOR_AGENT 门控）、预检环境前置（尤其 gh_token）、填好占位符、自检+验证、提交。能默认就默认，尽量别反问。
+3. 完成后向我报告：装/补/跳过了哪些文件、占位符取值、范围判定、环境前置状态、验证结果、下一步建议。
 ```
 
 这段提示词就是你唯一要保存的东西。装完之后，新的主会话和新的子代理进这个仓库就自动知道本标准（always-on 规则 + AGENTS.md）。
@@ -47,7 +47,7 @@
 ## 端到端工作流
 
 1. **建项目**：Cursor 里新建 Cloud Agent 对话并绑定 GitHub 仓库。无需额外机密或挂载配置。
-2. **装包**：首次对话贴「一次粘贴接入」提示词。setup agent 按 `INIT.md` 复制 `template/` 下 6 个文件、和你确认 3 个占位符、自检、提交。
+2. **装包**：首次对话贴「一次粘贴接入」提示词。setup agent 按 `INIT.md` 幂等地把 `template/` 下的文件补齐激活、填好 3 个占位符、预检环境前置（尤其 `gh_token`）、自检+验证、提交——尽量不反问。
 3. **主会话从此只派发**：`.cursor/rules/orchestrator.mdc` 是 always-on 规则，Cursor 自动应用。
 4. **正常循环**：用户提需求 → 主会话把需求轻度整理成两段式 prompt（需求 + 背景）→ `Task(environment: "cloud", model: 固定强模型)` → 子代理先 ack、需要时 bootstrap 原话、实现、验证、push 分支 / Draft PR、黑板收尾 → 主会话收到 Task 完成通知 → review → 按依赖顺序 merge → 下一波。首次真实派工本身就验证了整条链路。
 5. **等待与唤醒（无轮询、无定时）**：主会话要跟进某 PR 就先 `subscribe_github_pr` 再结束 turn；对同一件事的 follow-up 用 `Task(resume)` 恢复原 IDLE 子代理，不开重复 Task；RUNNING 会话之间只有共享盘可递话。
@@ -69,8 +69,8 @@ USAGE.md         # 使用手册：装包、开新主会话、日常干活时人�
 REQUIREMENTS.md  # ORB-1 标准（RFC 体，规范正本；目标由用户固定，条文可依 History 演进）
 INIT.md          # setup agent 的执行指令（唯一入口）
 template/        # 会被复制进目标仓库的 6 个文件
-  AGENTS.md                                # 编排手册（角色、prompt 格式、bootstrap、共享状态、唤醒）
-  .cursor/rules/orchestrator.mdc           # Cursor always-on 规则：主会话只派发（ORB-1）
+  AGENTS.md                                # 编排手册（角色、prompt 格式、bootstrap、共享状态、唤醒、环境前置）
+  .cursor/rules/orchestrator.mdc           # 唯一 always-on 规则：铁律置顶 + Cloud/gh_token 门控 + 黑板（ORB-1）
   scripts/extract-orchestrator-context.ts  # transcript → digest 过滤脚本（零依赖，bun 直跑）
   scripts/agent-blackboard.ts              # 共享黑板脚本：roster / tasks / bus + flock（零依赖，bun 直跑）
   .scratch/issues/INDEX.md                 # ticket frontier 骨架（按需使用）
@@ -81,4 +81,4 @@ template/        # 会被复制进目标仓库的 6 个文件
 
 ## 手动使用（不经 setup agent）
 
-把 `template/` 下 6 个文件按相同路径拷进你的仓库，替换三个占位符，提交即可。之后直接派第一件真实工作——它本身就验证了整条链路。
+把 `template/` 下 6 个文件按相同路径拷进你的仓库，替换三个占位符，确认环境有 `gh_token`，提交即可。之后直接派第一件真实工作——它本身就验证了整条链路。

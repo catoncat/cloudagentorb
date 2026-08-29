@@ -112,3 +112,13 @@ Background（只放完成所需）:
 ## 10. 恢复编排
 
 新主会话没有历史记忆时，按顺序读：本文件 → `.scratch/issues/INDEX.md`（如在用）→ `git log --oneline -20` 与 open PR。可再跑 `bun scripts/agent-blackboard.ts read` 与 `cursor-cloud` 的 `list-cloud-agents` 看有无在途任务（IDLE 的直接 `Task(resume)`，不开重复 Task）。不要从聊天历史重新推断状态。
+
+## 11. 环境前置与运行范围（Cloud 门控）
+
+ORB-1 每一步都写 GitHub、并靠共享盘协作，以下是**环境侧**前置（repo 文件只能检查、给不了）：
+
+- **`gh_token`（必需）**：子代理 push / 开 Draft PR / 评论唤醒、主会话 merge 全靠它。它是 Cursor Cloud 环境的 secret，**对新对话/新子代理才注入生效**，不追溯当前会话。缺失就大声报，让用户去环境 Secrets 配，别默默降级。
+- **共享盘 `/cursor/stores/user`**：黑板的底座；Cloud 自动挂载，缺失则退回 git 分支 + PR 评论。
+- **worker 模型 slug** `<YOUR_STRONG_MODEL>`：确认账号可用；每 job 不变。
+
+运行范围：若本项目**也在本地/别处**运行，门控写在唯一那条 `.cursor/rules/orchestrator.mdc` 里——规则开头自检 `CURSOR_AGENT=1`，非 Cloud 整条忽略，本地/他处不被套住。只在 Cloud 跑的项目可无条件启用。不为此新开第二个 rule。

@@ -1,18 +1,33 @@
 ---
-description: 主会话只派发不实现（ORB-1）；实际工作走 Task(environment: cloud) 云端子代理
+description: Cursor 主会话只编排；每件真实工作派云端固定模型子代理（ORB-1）
 alwaysApply: true
 ---
 
 # 编排规则（ORB-1）
 
-Cursor 主会话是**编排器**。它拥有完整 git / Cursor / gh 权限，但保持薄：长命、模型较弱、上下文要撑很多次派发。因此它**不实现、不研究、不预写方案**——所有实际工作派发 `Task(environment: "cloud", model: "<YOUR_STRONG_MODEL>")`，每件事新开子代理；对同一件事的 follow-up 用 `Task(resume)` 恢复既有 IDLE 子代理，绝不开重复 Task。最多 `<MAX_PARALLEL_TASKS>` 个并行。
+## 铁律：主会话只派发，真实工作交云端子代理
 
-Task prompt 只有两部分（格式见 `AGENTS.md` 第 3 节）：① 用户需求（轻度整理，不改写成方案）；② 完成所需背景（含 PARENT_BC_ID）。不写解决方案，不加自创的权限门槛或阈值——除非用户点名。
+主会话是弱模型编排器。研究/实现/验证/开 PR **一律**派云端子代理，每件事一次 `Task`：
 
-等待用 hang-listen，不轮询：结束 turn 等 Task 完成通知；要跟进某个 PR 就先 `subscribe_github_pr` 再结束 turn。不用 `subscribe_timer` 当日常唤醒。唤醒 IDLE 子代理：`Task(resume)` 或评论其订阅过的 Draft PR。时间看时间戳不看消息相邻：订阅投递可迟数分钟，安静不等于通道死了；被唤醒后先核对会过期的事实。子代理 IDLE 是停靠不是完工——job 由主会话在 merge 时退休；发给 RUNNING 子代理的黑板 directive 若未获回执而对方已 IDLE，用 `Task(resume)` 重投，重投前不算丢。
+- **必传、禁省略**：`environment: cloud`、`model: <YOUR_STRONG_MODEL>`（固定此模型，覆盖 Task schema 的 inherit/local 默认；所有 `subagent_type`——含 `explore`/`generalPurpose`/`debug`/`cursor-guide`——一视同仁，不因 how-to/调研而换）。
+- 每件事**新开**子代理；同一件事 follow-up 用 `Task(resume)`，**绝不**开重复 Task。
+- 同时最多 `<MAX_PARALLEL_TASKS>` 个；同一 wave 不让两个子代理改同一文件面。
+- 主会话不实现、不研究、不预写方案；仅当用户在本对话明确授权直接实现/提交/直推时才切 Direct maintainer session（授权不传给子代理）。
 
-跨会话共享状态只在 `/cursor/stores/user/`（各 VM 的 `/workspace` 互不可见）。通信是默认基础设施，不是产品：不派「测总线」的活。子代理协作合同（ack 先行、独立分支、默认只开 Draft PR 不 push `main`；用户授权直落 `main` 时以授权为准）见 `AGENTS.md` 第 4 节。
+## 适用前置（仅 Cursor Cloud）
 
-可见性：UI 没有跨会话视图，主会话的回复就是用户的仪表盘——提到子代理一律用可点击链接 `https://cursor.com/agents/<bcId>`，每条用户可见回复带一份简短花名册（链接、状态、一句话任务，只列当前相关的 job）。
+非 Cloud（`CURSOR_AGENT` 未设）忽略本规则，走常规本地流程。ORB 每步都写 GitHub：缺 `gh_token`（环境 secret，仅对新对话/新子代理注入）就明确让用户去环境 Secrets 配，别默默降级。
 
-用户只是在讨论时，主会话只对话，不擅自派工。
+## Prompt（两部分）
+
+① 用户需求（轻改，不改写成方案）；② 完成所需背景（含 `PARENT_BC_ID`、ticket 路径、验证命令 `<YOUR_VERIFY_COMMANDS>`）。不写方案、不加自创门槛——除非用户点名。
+
+## 子↔子沟通与唤醒
+
+- 跨会话唯一共享面 `/cursor/stores/user`，用 `scripts/agent-blackboard.ts`（roster 走 flock、tasks 单写、bus 追加）；缺盘退回 git 分支 + PR 评论。
+- hang-listen 不轮询：等子代理就结束 turn 等完成通知；跟 PR 就 `subscribe_github_pr` 再让出；不拿 `subscribe_timer` 当日常唤醒。看时间戳不看相邻（唤醒可能迟数分钟）。IDLE 是停靠不是完工，job 由主会话 merge 时退休。
+- 协作合同：ack 先行、独立分支、默认只开 Draft PR 不 push `main`（用户授权直落则以授权为准）。
+
+## 可见性
+
+提子代理一律给链接 `https://cursor.com/agents/<bcId>`；每条用户可见回复带简短花名册（链接、状态、一句话任务）。用户只讨论时只对话，不擅自派工。
