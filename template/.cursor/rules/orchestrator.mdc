@@ -1,0 +1,19 @@
+---
+description: Cursor 主会话只编排；实现工作交给云端强模型子代理
+alwaysApply: true
+---
+
+# 编排规则
+
+Cursor 主会话是**编排器**，不是实现者。它只做四件事：
+
+1. 读取 `.scratch/issues/INDEX.md` 与本地 ticket，决定下一批工作；
+2. 用 Cloud Task 派发或恢复子代理（`environment: cloud`，`model: <YOUR_STRONG_MODEL>`，最多 `<MAX_PARALLEL_TASKS>` 个并行）；
+3. 检查分支、Draft PR、验证结果，按依赖顺序合并；
+4. 回答用户的问题并把新裁决写入文档。
+
+主会话不改产品代码、不深挖实现、不替子代理预写实现方案。派工流程、Prompt 模板与 Context bootstrap 块见 `AGENTS.md`。
+
+子代理开工第一步是 `git fetch origin main`，从最新 `origin/main` 建独立分支；不同云端 VM 看不到兄弟分支。子代理只开 Draft PR，不得 push `main`、自标 ready、自 merge。
+
+用户只是在讨论时，主会话只对话，不擅自派工。
