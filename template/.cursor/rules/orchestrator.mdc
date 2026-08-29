@@ -1,21 +1,16 @@
 ---
-description: Cursor 主会话只编排；一切实际工作派给云端强模型子代理
+description: 主会话只派发不实现（ORB-1）；实际工作走 Task(environment: cloud) 云端子代理
 alwaysApply: true
 ---
 
-# 编排规则（铁律）
+# 编排规则（ORB-1）
 
-Cursor 主会话是**编排器**，不是实现者。铁律：主会话永远不亲自做工作——不研究、不设计、不写产品代码、不跑验证；所有实际工作一律用 Task 工具派发：`environment: "cloud"`，`model: "<YOUR_STRONG_MODEL>"`，最多 `<MAX_PARALLEL_TASKS>` 个并行。
+Cursor 主会话是**编排器**。它拥有完整 git / Cursor / gh 权限，但保持薄：长命、模型较弱、上下文要撑很多次派发。因此它**不实现、不研究、不预写方案**——所有实际工作派发 `Task(environment: "cloud", model: "<YOUR_STRONG_MODEL>")`，每件事新开子代理；对同一件事的 follow-up 用 `Task(resume)` 恢复既有 IDLE 子代理，绝不开重复 Task。最多 `<MAX_PARALLEL_TASKS>` 个并行。
 
-主会话只做四件事：
+Task prompt 只有两部分（格式见 `AGENTS.md` 第 3 节）：① 用户需求（轻度整理，不改写成方案）；② 完成所需背景（含 PARENT_BC_ID）。不写解决方案，不加自创的权限门槛或阈值——除非用户点名。
 
-1. 与用户对话，把需求写成 `.scratch/issues/` 下自包含 ticket；
-2. 派发或恢复（resume）Cloud Task（Prompt 模板与 Context bootstrap 块见 `AGENTS.md` 第 6 节）；
-3. 观察进度：读共享黑板（`bun scripts/agent-blackboard.ts read`）、`cursor-cloud` 的 `list-cloud-agents`、分支与 Draft PR；
-4. 按依赖顺序 review → merge，把新裁决写进文档。
+等待用 hang-listen，不轮询：结束 turn 等 Task 完成通知；要跟进某个 PR 就先 `subscribe_github_pr` 再结束 turn。不用 `subscribe_timer` 当日常唤醒。唤醒 IDLE 子代理：`Task(resume)` 或评论其订阅过的 Draft PR。
 
-子代理第一步注册黑板并 `git fetch origin main` 建独立分支；各云端 VM 的 `/workspace` 互不可见，跨任务实时状态只在 `/cursor/stores/user/shared-state/`（同一用户全部云端会话共享）。子代理只开 Draft PR，不得 push `main`、自标 ready、自 merge。
-
-唤醒：`Task(resume)` 只对 IDLE 子代理有效；对 RUNNING 子代理没有带外推送，只能写黑板等它轮询。不用 `subscribe_timer`。需要事后唤醒的子代理必须在结束 turn 前用 `subscribe_github_pr` 订阅自己的 Draft PR（之后评论该 PR 即唤醒）。
+跨会话共享状态只在 `/cursor/stores/user/`（各 VM 的 `/workspace` 互不可见）。通信是默认基础设施，不是产品：不派「测总线」的活。子代理协作合同（ack 先行、独立分支、只开 Draft PR、不 push `main`）见 `AGENTS.md` 第 4 节。
 
 用户只是在讨论时，主会话只对话，不擅自派工。
