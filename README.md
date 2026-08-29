@@ -65,7 +65,7 @@
 
 ```text
 README.md        # 本文件：ORB-1 目标 + 方案 + 端到端工作流 + 配置去向
-REQUIREMENTS.md  # ORB-1 标准原文（规范正本，authority: user）
+REQUIREMENTS.md  # ORB-1 标准（RFC 体，规范正本；目标由用户固定，条文可依 History 演进）
 INIT.md          # setup agent 的执行指令（唯一入口）
 template/        # 会被复制进目标仓库的 6 个文件
   AGENTS.md                                # 编排手册（角色、prompt 格式、bootstrap、共享状态、唤醒）
