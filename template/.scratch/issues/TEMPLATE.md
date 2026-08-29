@@ -48,6 +48,7 @@ Blocked by: —
 
 - 分支 / Draft PR
 - 本 ticket 的 Answer
+- 黑板收尾：`bun scripts/agent-blackboard.ts set status=done branch=<branch> pr=<url>`
 
 ## Answer
 

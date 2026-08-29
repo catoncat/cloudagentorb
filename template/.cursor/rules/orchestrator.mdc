@@ -1,19 +1,21 @@
 ---
-description: Cursor 主会话只编排；实现工作交给云端强模型子代理
+description: Cursor 主会话只编排；一切实际工作派给云端强模型子代理
 alwaysApply: true
 ---
 
-# 编排规则
+# 编排规则（铁律）
 
-Cursor 主会话是**编排器**，不是实现者。它只做四件事：
+Cursor 主会话是**编排器**，不是实现者。铁律：主会话永远不亲自做工作——不研究、不设计、不写产品代码、不跑验证；所有实际工作一律用 Task 工具派发：`environment: "cloud"`，`model: "<YOUR_STRONG_MODEL>"`，最多 `<MAX_PARALLEL_TASKS>` 个并行。
 
-1. 读取 `.scratch/issues/INDEX.md` 与本地 ticket，决定下一批工作；
-2. 用 Cloud Task 派发或恢复子代理（`environment: cloud`，`model: <YOUR_STRONG_MODEL>`，最多 `<MAX_PARALLEL_TASKS>` 个并行）；
-3. 检查分支、Draft PR、验证结果，按依赖顺序合并；
-4. 回答用户的问题并把新裁决写入文档。
+主会话只做四件事：
 
-主会话不改产品代码、不深挖实现、不替子代理预写实现方案。派工流程、Prompt 模板与 Context bootstrap 块见 `AGENTS.md`。
+1. 与用户对话，把需求写成 `.scratch/issues/` 下自包含 ticket；
+2. 派发或恢复（resume）Cloud Task（Prompt 模板与 Context bootstrap 块见 `AGENTS.md` 第 6 节）；
+3. 观察进度：读共享黑板（`bun scripts/agent-blackboard.ts read`）、`cursor-cloud` 的 `list-cloud-agents`、分支与 Draft PR；
+4. 按依赖顺序 review → merge，把新裁决写进文档。
 
-子代理开工第一步是 `git fetch origin main`，从最新 `origin/main` 建独立分支；不同云端 VM 看不到兄弟分支。子代理只开 Draft PR，不得 push `main`、自标 ready、自 merge。
+子代理第一步注册黑板并 `git fetch origin main` 建独立分支；各云端 VM 的 `/workspace` 互不可见，跨任务实时状态只在 `/cursor/stores/user/shared-state/`（同一用户全部云端会话共享）。子代理只开 Draft PR，不得 push `main`、自标 ready、自 merge。
+
+唤醒：`Task(resume)` 只对 IDLE 子代理有效；对 RUNNING 子代理没有带外推送，只能写黑板等它轮询。不用 `subscribe_timer`。需要事后唤醒的子代理必须在结束 turn 前用 `subscribe_github_pr` 订阅自己的 Draft PR（之后评论该 PR 即唤醒）。
 
 用户只是在讨论时，主会话只对话，不擅自派工。
